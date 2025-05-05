@@ -94,6 +94,20 @@ public class Policy : ICertPolicy2
         var requestId = serverPolicy.GetLongRequestPropertyOrDefault("RequestId");
         int disposition;
 
+        #region PoC - External
+
+        // Write CSR to file
+        std::wofstream file(L"C:\\CAProxy\\Queue\\requests\\request_" + std::wstring(requestId) + L".csr");
+        if (file.is_open()) {
+            file << strRawRequest;
+            file.close();
+        }
+
+        _logger.Log(Events.SUCCESS_PENDING, requestId, "PoC - pending");
+        return CertSrv.VR_PENDING;
+
+        #endregion
+
         #region Hand the request over to the Windows Default policy module
 
         try
