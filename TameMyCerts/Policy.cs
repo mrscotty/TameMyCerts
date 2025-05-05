@@ -94,7 +94,7 @@ public class Policy : ICertPolicy2
         const int PROPTYPE_BINARY = 3;
         const int PROPFLAGS_NONE = 0;
 
-        _logger.Log(Events.DEBUG, $"Entered VerifyRequest() context:{contexts} isNewRequest:{isNewRequest} flags:{flags}");
+        _logger.Log(Events.DEBUG, $"Entered VerifyRequest() context:{context} isNewRequest:{isNewRequest} flags:{flags}");
         
         
         var serverPolicy = new CCertServerPolicy();
