@@ -239,7 +239,8 @@ public class Policy : ICertPolicy2
 
         #region PoC - External
 
-        _logger.Log(Events.DEBUG, $"VerifyRequest() - reached External section !!");
+        _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 03");
+        //_logger.Log(Events.DEBUG, $"VerifyRequest() - reached External section !!");
 
         try {
         object reqTypeObj = serverPolicy.GetRequestAttribute("RequestType");
@@ -250,12 +251,15 @@ public class Policy : ICertPolicy2
             _logger.Log(Events.DEBUG, @"VerifyRequest() - Error getting reqType: " + ex.ToString());
         }
 
+        _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 03a");
+
         try {
 
         // Get RawRequest property (binary CSR)
         object rawRequestObj = serverPolicy.GetRequestProperty("RawRequest", PROPTYPE_BINARY, PROPFLAGS_NONE);
 
          if (rawRequestObj is byte[] rawRequest) {
+        _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 03a1");
                 // Convert to Base64 PEM format
                 string base64 = Convert.ToBase64String(rawRequest, Base64FormattingOptions.InsertLineBreaks);
                 string pem = "-----BEGIN CERTIFICATE REQUEST-----\r\n" +
@@ -266,6 +270,8 @@ public class Policy : ICertPolicy2
                 string path = $@"C:\CAProxy\Queue\requests\request_{requestId}.csr";
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
                 File.WriteAllText(path, pem);
+        } else {
+        _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 03a2");
         }
 
         }
@@ -274,13 +280,14 @@ public class Policy : ICertPolicy2
             _logger.Log(Events.DEBUG, @"VerifyRequest() - Error getting CSR: " + ex.ToString());
         }
 
+        _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 03b");
+
         _logger.Log(Events.SUCCESS_PENDING, requestId, "PoC - pending");
         //return CertSrv.VR_PENDING;
         disposition = CertSrv.VR_PENDING;
 
         #endregion
 
-        _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 03");
 
         #region Log warnings, if any
 
