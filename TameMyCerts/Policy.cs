@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System;
+using System.IO; // for writing to queue
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -22,6 +23,7 @@ using TameMyCerts.ClassExtensions;
 using TameMyCerts.Enums;
 using TameMyCerts.Models;
 using TameMyCerts.Validators;
+
 
 namespace TameMyCerts;
 
@@ -82,31 +84,27 @@ public class Policy : ICertPolicy2
         _logger = new Logger(_appName, _caConfig.LogLevel);
         _policyCache = new CertificateRequestPolicyCache(_caConfig.PolicyDirectory);
 
+        _logger.Log(Events.DEBUG, "Entered Initialize()");
         PreventModuleLoadOnStandaloneCa();
         InitializeWindowsDefaultPolicyModule(strConfig);
     }
 
     public int VerifyRequest(string strConfig, int context, int isNewRequest, int flags)
     {
+        const int PROPTYPE_BINARY = 3;
+        const int PROPFLAGS_NONE = 0;
+
+        _logger.Log(Events.DEBUG, "Entered VerifyRequest()");
+        
+        
         var serverPolicy = new CCertServerPolicy();
         serverPolicy.SetContext(context);
 
         var requestId = serverPolicy.GetLongRequestPropertyOrDefault("RequestId");
+        _logger.Log(Events.DEBUG, $"VerifyRequest() - requestId: {requestId}");
+        
         int disposition;
 
-        #region PoC - External
-
-        // Write CSR to file
-        std::wofstream file(L"C:\\CAProxy\\Queue\\requests\\request_" + std::wstring(requestId) + L".csr");
-        if (file.is_open()) {
-            file << strRawRequest;
-            file.close();
-        }
-
-        _logger.Log(Events.SUCCESS_PENDING, requestId, "PoC - pending");
-        return CertSrv.VR_PENDING;
-
-        #endregion
 
         #region Hand the request over to the Windows Default policy module
 
@@ -275,6 +273,42 @@ public class Policy : ICertPolicy2
         {
             throw new COMException(string.Empty, result.StatusCode);
         }
+
+        #region PoC - External
+
+        object reqTypeObj = certServer.GetRequestAttribute("RequestType");
+        string reqType = reqTypeObj?.ToString();
+        _logger.Log(Events.DEBUG, $"VerifyRequest() - reqType: {reqType}");
+
+        try {
+
+        // Get RawRequest property (binary CSR)
+        object rawRequestObj = serverPolicy.GetRequestProperty("RawRequest", PROPTYPE_BINARY, PROPFLAGS_NONE);
+
+         if (rawRequestObj is byte[] rawRequest) {
+                // Convert to Base64 PEM format
+                string base64 = Convert.ToBase64String(rawRequest, Base64FormattingOptions.InsertLineBreaks);
+                string pem = "-----BEGIN CERTIFICATE REQUEST-----\r\n" +
+                             base64 +
+                             "\r\n-----END CERTIFICATE REQUEST-----\r\n";
+
+                // Save to file (e.g., C:\CSR\request_123.csr)
+                string path = $@"C:\CAProxy\Queue\requests\request_{requestId}.csr";
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                File.WriteAllText(path, pem);
+        }
+
+        }
+
+        catch (Exception ex) {
+            _logger.Log(Events.DEBUG, @"VerifyRequest() - Error getting CSR: " + ex.ToString());
+
+        }
+
+        _logger.Log(Events.SUCCESS_PENDING, requestId, "PoC - pending");
+        return CertSrv.VR_PENDING;
+
+        #endregion
 
         return result.StatusCode;
 
