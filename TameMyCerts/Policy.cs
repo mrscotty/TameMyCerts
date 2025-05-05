@@ -126,6 +126,8 @@ public class Policy : ICertPolicy2
 
         #endregion
 
+        _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 01");
+
         // It seems that the Windows default module invalidates our data if we put it ahead of the call
         var dbRow = new CertificateDatabaseRow(serverPolicy);
 
@@ -140,6 +142,8 @@ public class Policy : ICertPolicy2
         }
 
         #endregion
+
+        _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 02");
 
         var result = new CertificateRequestValidationResult(dbRow);
 
@@ -226,6 +230,8 @@ public class Policy : ICertPolicy2
             #endregion
         }
 
+        _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 03");
+
         #region Log warnings, if any
 
         if (result.Warnings.Count > 0)
@@ -261,12 +267,17 @@ public class Policy : ICertPolicy2
 
         #endregion
 
+        _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 04");
+
         #region Deny request in any other case
 
         ETWLogger.Log.TMC_6_Deny_Issuing_Request(requestId, template.Name,
             string.Join("\n", result.Description.Distinct().ToList()));
         _logger.Log(Events.REQUEST_DENIED, requestId, template.Name,
             string.Join("\n", result.Description.Distinct().ToList()));
+
+
+        _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 05");
 
         // Seems that lower error codes must be thrown as exception
         if (result.StatusCode is > CertSrv.VR_INSTANT_BAD and <= WinError.ERROR_INVALID_TIME)
