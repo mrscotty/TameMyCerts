@@ -241,9 +241,14 @@ public class Policy : ICertPolicy2
 
         _logger.Log(Events.DEBUG, $"VerifyRequest() - reached External section !!");
 
+        try {
         object reqTypeObj = serverPolicy.GetRequestAttribute("RequestType");
         string reqType = reqTypeObj?.ToString();
         _logger.Log(Events.DEBUG, $"VerifyRequest() - reqType: {reqType}");
+        }
+        catch (Exception ex) {
+            _logger.Log(Events.DEBUG, @"VerifyRequest() - Error getting reqType: " + ex.ToString());
+        }
 
         try {
 
@@ -267,7 +272,6 @@ public class Policy : ICertPolicy2
 
         catch (Exception ex) {
             _logger.Log(Events.DEBUG, @"VerifyRequest() - Error getting CSR: " + ex.ToString());
-
         }
 
         _logger.Log(Events.SUCCESS_PENDING, requestId, "PoC - pending");
