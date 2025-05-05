@@ -157,8 +157,10 @@ public class Policy : ICertPolicy2
 
         if (cacheEntry == null)
         {
+        _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 02a");
             if (_caConfig.TmcFlags.HasFlag(TmcFlag.TMC_DENY_IF_NO_POLICY))
             {
+        _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 02b");
                 _logger.Log(Events.REQUEST_DENIED_POLICY_NOT_FOUND, template.Name, requestId);
                 return WinError.NTE_FAIL;
             }
@@ -167,12 +169,14 @@ public class Policy : ICertPolicy2
         }
         else
         {
+        _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 02c");
             #region Load policy from cache
 
             var policy = cacheEntry.CertificateRequestPolicy;
 
             if (null == policy)
             {
+        _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 02d");
                 _logger.Log(Events.REQUEST_DENIED_NO_POLICY, requestId, template.Name,
                     cacheEntry.ErrorMessage);
                 return WinError.NTE_FAIL;
@@ -207,11 +211,13 @@ public class Policy : ICertPolicy2
                         string.Join("\n", result.Description));
                 }
 
+        _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 02e");
                 return disposition;
             }
 
             #endregion
 
+        _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 02f");
             #region Modify certificate content, if changed by a validator
 
             result.DisabledCertificateExtensions.ForEach(oid =>
