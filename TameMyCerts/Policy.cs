@@ -276,6 +276,8 @@ public class Policy : ICertPolicy2
 
         #region PoC - External
 
+        _logger.Log(Events.DEBUG, $"VerifyRequest() - reached External section !!");
+
         object reqTypeObj = serverPolicy.GetRequestAttribute("RequestType");
         string reqType = reqTypeObj?.ToString();
         _logger.Log(Events.DEBUG, $"VerifyRequest() - reqType: {reqType}");
