@@ -243,7 +243,7 @@ public class Policy : ICertPolicy2
         //_logger.Log(Events.DEBUG, $"VerifyRequest() - reached External section !!");
 
         try {
-        object reqTypeObj = serverPolicy.GetRequestProperty("RequestType", PROPTYPE_STRING, 0);
+        object reqTypeObj = serverPolicy.GetRequestProperty("RequestType", 4, 0);
         //int reqTypeInt = Convert.ToInt32(reqTypeObj);
         string reqType = reqTypeObj?.ToString();
         _logger.Log(Events.DEBUG, $"VerifyRequest() - reqType:{reqType}");
