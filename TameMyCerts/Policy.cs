@@ -94,7 +94,7 @@ public class Policy : ICertPolicy2
         const int PROPTYPE_BINARY = 3;
         const int PROPFLAGS_NONE = 0;
 
-        _logger.Log(Events.DEBUG, "Entered VerifyRequest()");
+        _logger.Log(Events.DEBUG, $"Entered VerifyRequest() context:{contexts} isNewRequest:{isNewRequest} flags:{flags}");
         
         
         var serverPolicy = new CCertServerPolicy();
@@ -243,9 +243,10 @@ public class Policy : ICertPolicy2
         //_logger.Log(Events.DEBUG, $"VerifyRequest() - reached External section !!");
 
         try {
-        object reqTypeObj = serverPolicy.GetRequestAttribute("RequestType");
+        object reqTypeObj = serverPolicy.GetRequestProperty("RequestType", 1, 0);
+        int reqTypeInt = Convert.ToInt32(reqTypeObj);
         string reqType = reqTypeObj?.ToString();
-        _logger.Log(Events.DEBUG, $"VerifyRequest() - reqType: {reqType}");
+        _logger.Log(Events.DEBUG, $"VerifyRequest() - reqType:{reqType} reqTypeInt:{reqTypeInt}");
         }
         catch (Exception ex) {
             _logger.Log(Events.DEBUG, @"VerifyRequest() - Error getting reqType: " + ex.ToString());
