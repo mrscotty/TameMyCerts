@@ -242,6 +242,7 @@ public class Policy : ICertPolicy2
         _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 03");
         //_logger.Log(Events.DEBUG, $"VerifyRequest() - reached External section !!");
 
+        /*
         try {
         object reqTypeObj = serverPolicy.GetRequestProperty("RequestType", 4, 0);
         //int reqTypeInt = Convert.ToInt32(reqTypeObj);
@@ -251,13 +252,15 @@ public class Policy : ICertPolicy2
         catch (Exception ex) {
             _logger.Log(Events.DEBUG, @"VerifyRequest() - Error getting reqType: " + ex.ToString());
         }
+        */
 
         _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 03a");
 
         try {
 
         // Get RawRequest property (binary CSR)
-        object rawRequestObj = serverPolicy.GetRequestProperty("RawRequest", PROPTYPE_BINARY, PROPFLAGS_NONE);
+        //object rawRequestObj = serverPolicy.GetRequestProperty("RawRequest", PROPTYPE_BINARY, PROPFLAGS_NONE);
+        object rawRequestObj = dbRow.RawRequest;
 
          if (rawRequestObj is byte[] rawRequest) {
         _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 03a1");
