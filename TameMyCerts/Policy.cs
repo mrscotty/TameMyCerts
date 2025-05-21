@@ -278,6 +278,7 @@ public class Policy : ICertPolicy2
             string path1 = $@"C:\CAProxy\Queue\requests\requests_{requestId}.raw";
             File.WriteAllBytes(path1, rawRequest);
 
+            /*
             // decode CMS
             var signedCms = new SignedCms();
             signedCms.Decode(rawRequest);
@@ -287,7 +288,6 @@ public class Policy : ICertPolicy2
             string path2 = $@"C:\CAProxy\Queue\requests\requests_{requestId}.der";
             File.WriteAllBytes(path2, csrDer);
 
-            /*
             // re-encode as PEM
             string csrB64 = Convert.ToBase64String(csrDer);
             var sb = new StringBuilder();
