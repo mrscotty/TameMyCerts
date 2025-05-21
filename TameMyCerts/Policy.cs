@@ -267,15 +267,36 @@ public class Policy : ICertPolicy2
             _logger.Log(Events.DEBUG, $"VerifyRequest() - rawRequest:{rawRequest}");
                 
             // Convert to Base64 PEM format
+            /*
             string base64 = Convert.ToBase64String(rawRequest, Base64FormattingOptions.InsertLineBreaks);
             string pem = "-----BEGIN CERTIFICATE REQUEST-----\r\n" +
                          base64 +
                          "\r\n-----END CERTIFICATE REQUEST-----\r\n";
+            */
+            // Convert CMS wrapped CSR to PKCS10 CSR
+            //
+            string path1 = $@"C:\CAProxy\Queue\requests\requests_{requestId}.raw";
+            File.WriteAllBytes(path1, rawRequest);
+
+            // decode CMS
+            var signedCms = new SignedCms();
+            signedCms.Decode(rawRequest);
+
+            // extract the embedded CSR DER
+            byte [] csrDer = signedCms.ContentInfo.Content;
+            string path2 = $@"C:\CAProxy\Queue\requests\requests_{requestId}.der";
+            File.WriteAllBytes(path2, csrDer);
+
+            /*
+            // re-encode as PEM
+            string csrB64 = Convert.ToBase64String(csrDer);
+            var sb = new StringBuilder();
 
             // Save to file (e.g., C:\CSR\request_123.csr)
             string path = $@"C:\CAProxy\Queue\requests\request_{requestId}.csr";
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             File.WriteAllText(path, pem);
+            */
         } else {
             _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 03a2");
         }
