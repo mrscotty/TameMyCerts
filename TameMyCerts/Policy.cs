@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System;
+using System.Formats.Asn1;
 using System.IO; // for writing to queue
 using System.Linq;
 using System.Reflection;
@@ -278,25 +279,41 @@ public class Policy : ICertPolicy2
             string path1 = $@"C:\CAProxy\Queue\requests\requests_{requestId}.raw";
             File.WriteAllBytes(path1, rawRequest);
 
-            /*
-            // decode CMS
-            var signedCms = new SignedCms();
-            signedCms.Decode(rawRequest);
+            var reader = new AsnReader(rawRequest, AsnEncodingRules.BER);
+            var outerSequence = reader.ReadSequence(); // signed data
 
-            // extract the embedded CSR DER
-            byte [] csrDer = signedCms.ContentInfo.Content;
-            string path2 = $@"C:\CAProxy\Queue\requests\requests_{requestId}.der";
-            File.WriteAllBytes(path2, csrDer);
+            var foundData = false;
 
-            // re-encode as PEM
-            string csrB64 = Convert.ToBase64String(csrDer);
-            var sb = new StringBuilder();
+            // Look for a context-specific tag containing the SignedData content
+            while (outerSequence.HasData and !foundData)
+            {
+                var tag = outerSequence.PeekTag();
 
-            // Save to file (e.g., C:\CSR\request_123.csr)
-            string path = $@"C:\CAProxy\Queue\requests\request_{requestId}.csr";
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
-            File.WriteAllText(path, pem);
-            */
+                // Look for contentInfo which contains eContent (tagged [0])
+                if (tag.TagClass == TagClass.ContextSpecific && tag.TagValue == 0)
+                {
+                    var content = outerSequence.ReadEncodedValue();
+
+                    // Decode inner PKCS#10 from CMS payload
+                    var inner = new AsnReader(content, AsnEncodingRules.BER);
+                    var innerExplicit = inner.ReadSequence(new Asn1Tag(TagClass.ContextSpecific, 0, isConstructed: true));
+                    var csrBytes = innerExplicit.ReadOctetString(); // This should be the raw PKCS#10
+
+                    // Write to PEM
+                    string base64 = Convert.ToBase64String(csrBytes, Base64FormattingOptions.InsertLineBreaks);
+                    string pem = "-----BEGIN CERTIFICATE REQUEST-----\n" + base64 + "\n-----END CERTIFICATE REQUEST-----";
+                    File.WriteAllText(@"C:\path\to\output.csr.pem", pem);
+
+                    Console.WriteLine("PKCS#10 extracted and saved.");
+                    foundData = true;
+                } else {
+                    // skip unknown field
+                    outerSequence.ReadEncodedValue();
+                }
+            }
+
+            Console.WriteLine("PKCS#10 not found in the input.");
+
         } else {
             _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 03a2");
         }
