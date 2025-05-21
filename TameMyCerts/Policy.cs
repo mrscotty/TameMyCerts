@@ -302,7 +302,7 @@ public class Policy : ICertPolicy2
                     // Write to PEM
                     string base64 = Convert.ToBase64String(csrBytes, Base64FormattingOptions.InsertLineBreaks);
                     string pem = "-----BEGIN CERTIFICATE REQUEST-----\n" + base64 + "\n-----END CERTIFICATE REQUEST-----";
-                    File.WriteAllText(@"C:\path\to\output.csr.pem", pem);
+                    File.WriteAllText($@"C:\CAProxy\Queue\requests\request_{requestId}.pem", pem);
 
                     Console.WriteLine("PKCS#10 extracted and saved.");
                     foundData = true;
