@@ -285,7 +285,7 @@ public class Policy : ICertPolicy2
             var foundData = false;
 
             // Look for a context-specific tag containing the SignedData content
-            while (outerSequence.HasData and !foundData)
+            while (outerSequence.HasData && !foundData)
             {
                 var tag = outerSequence.PeekTag();
 
