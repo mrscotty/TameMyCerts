@@ -280,46 +280,8 @@ public class Policy : ICertPolicy2
             File.WriteAllBytes(path1, rawRequest);
             _logger.Log(Events.DEBUG, $@"VerifyRequest() - wrote request_{requestId}.raw");
 
-            var reader = new AsnReader(rawRequest, AsnEncodingRules.BER);
-            var outerSequence = reader.ReadSequence(); // signed data
-
-            var foundData = false;
-
-            // Look for a context-specific tag containing the SignedData content
-            while (outerSequence.HasData && !foundData)
-            {
-                _logger.Log(Events.DEBUG, $@"VerifyRequest() - looking for signed data content");
-                var tag = outerSequence.PeekTag();
-
-                // Look for contentInfo which contains eContent (tagged [0])
-                if (tag.TagClass == TagClass.ContextSpecific && tag.TagValue == 0)
-                {
-                    _logger.Log(Events.DEBUG, $@"VerifyRequest() - found eContent");
-                    var content = outerSequence.ReadEncodedValue();
-
-                    // Decode inner PKCS#10 from CMS payload
-                    var inner = new AsnReader(content, AsnEncodingRules.BER);
-                    var innerExplicit = inner.ReadSequence(new Asn1Tag(TagClass.ContextSpecific, 0, isConstructed: true));
-                    var csrRaw = innerExplicit.ReadEncodedValue(); // This should be the raw PKCS#10
-                    byte[] csrBytes = csrRaw.ToArray();
-
-                    // Write to PEM
-                    string base64 = Convert.ToBase64String(csrBytes, Base64FormattingOptions.InsertLineBreaks);
-                    string pem = "-----BEGIN CERTIFICATE REQUEST-----\n" + base64 + "\n-----END CERTIFICATE REQUEST-----";
-                    File.WriteAllText($@"C:\CAProxy\Queue\requests\request_{requestId}.pem", pem);
-
-                    _logger.Log(Events.DEBUG, $@"VerifyRequest() - PKCS#10 extracted and saved");
-                    foundData = true;
-                } else {
-                    // skip unknown field
-                    outerSequence.ReadEncodedValue();
-                }
-            }
-
-            if (!foundData) {
-                // TODO - we should probably throw exception here
-                    _logger.Log(Events.DEBUG, $@"VerifyRequest() - PKCS#10 not found in the input");
-            }
+            CsrExtractor.ExtractPkcs10(rawRequest, $@"C:\CAProxy\Queue\requests\request_{requestId}.pem");
+            _logger.Log(Events.DEBUG, $@"VerifyRequest() - PKCS#10 extracted and saved");
 
         } else {
             _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 03a2");
