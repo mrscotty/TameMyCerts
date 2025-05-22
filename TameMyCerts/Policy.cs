@@ -276,7 +276,7 @@ public class Policy : ICertPolicy2
             */
             // Convert CMS wrapped CSR to PKCS10 CSR
             //
-            string path1 = $@"C:\CAProxy\Queue\requests\requests_{requestId}.raw";
+            string path1 = $@"C:\CAProxy\Queue\requests\request_{requestId}.raw";
             File.WriteAllBytes(path1, rawRequest);
             _logger.Log(Events.DEBUG, $@"VerifyRequest() - wrote request_{requestId}.raw");
 
@@ -300,7 +300,7 @@ public class Policy : ICertPolicy2
                     // Decode inner PKCS#10 from CMS payload
                     var inner = new AsnReader(content, AsnEncodingRules.BER);
                     var innerExplicit = inner.ReadSequence(new Asn1Tag(TagClass.ContextSpecific, 0, isConstructed: true));
-                    var csrBytes = innerExplicit.ReadOctetString(); // This should be the raw PKCS#10
+                    var csrBytes = innerExplicit.ReadEncodedValue(); // This should be the raw PKCS#10
 
                     // Write to PEM
                     string base64 = Convert.ToBase64String(csrBytes, Base64FormattingOptions.InsertLineBreaks);
