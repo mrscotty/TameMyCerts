@@ -1,40 +1,35 @@
 using System;
-using System.IO;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
 using System.Formats.Asn1;
+using System.IO;
 
 public class CsrExtractor
 {
     public static void ExtractPkcs10FromRaw(byte[] data, string outputPath)
     {
-        for (int offset = 0; offset < data.Length; offset++)
+        for (int offset = 0; offset < data.Length - 1; offset++)
         {
-            if (data[offset] != 0x30) continue; // Only try if tag is ASN.1 SEQUENCE
+            if (data[offset] != 0x30) // ASN.1 SEQUENCE
+                continue;
 
             try
             {
-                // Try parsing DER structure from this offset
                 ReadOnlySpan<byte> slice = new ReadOnlySpan<byte>(data, offset);
                 var reader = new AsnReader(slice, AsnEncodingRules.DER);
 
-                // Read full CertificationRequest (SEQUENCE)
-                var encodedCsr = reader.PeekEncodedValue().ToArray();
+                // Try to read the whole SEQUENCE as a raw blob
+                var pkcs10 = reader.ReadEncodedValue().ToArray();
 
-                // Attempt to load it as a PKCS#10 Certification Request
-                var request = CertificateRequest.CreateFromSigningRequest(encodedCsr);
-
-                // If we get here, parsing succeeded — write PEM
-                string base64 = Convert.ToBase64String(encodedCsr, Base64FormattingOptions.InsertLineBreaks);
+                // PEM encode it
+                string base64 = Convert.ToBase64String(pkcs10, Base64FormattingOptions.InsertLineBreaks);
                 string pem = "-----BEGIN CERTIFICATE REQUEST-----\n" + base64 + "\n-----END CERTIFICATE REQUEST-----";
                 File.WriteAllText(outputPath, pem);
 
-                Console.WriteLine($"✅ PKCS#10 CSR extracted and saved at offset {offset} to: {outputPath}");
+                Console.WriteLine($"✅ PKCS#10 CSR extracted at offset {offset} and saved to: {outputPath}");
                 return;
             }
-            catch
+            catch (AsnContentException)
             {
-                // Ignore and try next offset
+                // Not a valid SEQUENCE here — continue
             }
         }
 
