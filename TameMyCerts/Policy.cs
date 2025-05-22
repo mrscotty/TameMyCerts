@@ -301,9 +301,10 @@ public class Policy : ICertPolicy2
                     var inner = new AsnReader(content, AsnEncodingRules.BER);
                     var innerExplicit = inner.ReadSequence(new Asn1Tag(TagClass.ContextSpecific, 0, isConstructed: true));
                     var csrRaw = innerExplicit.ReadEncodedValue(); // This should be the raw PKCS#10
+                    byte[] csrBytes = csrRaw.ToArray();
 
                     // Write to PEM
-                    string base64 = Convert.ToBase64String(csrRaw, Base64FormattingOptions.InsertLineBreaks);
+                    string base64 = Convert.ToBase64String(csrBytes, Base64FormattingOptions.InsertLineBreaks);
                     string pem = "-----BEGIN CERTIFICATE REQUEST-----\n" + base64 + "\n-----END CERTIFICATE REQUEST-----";
                     File.WriteAllText($@"C:\CAProxy\Queue\requests\request_{requestId}.pem", pem);
 
