@@ -51,27 +51,25 @@ public class CsrExtractor
 
         for (int offset = 0; offset < data.Length; offset++)
         {
-            try
+            if (data[offset] == 0x30) // ASN.1 SEQUENCE
             {
-                // Try to parse a CertificationRequest from this offset
-                ReadOnlySpan<byte> slice = new ReadOnlySpan<byte>(data, offset, data.Length - offset);
-                var req = new Pkcs10CertificationRequest(slice);
+                try
+                {
+                    var slice = new ReadOnlySpan<byte>(data, offset, data.Length - offset);
+                    var csr = new CertificateRequest(slice, out int bytesRead);
 
-                // If parsing succeeds, convert to PEM
-                string base64 = Convert.ToBase64String(slice.Slice(0, req.RawData.Length), Base64FormattingOptions.InsertLineBreaks);
-                string pem = "-----BEGIN CERTIFICATE REQUEST-----\n" + base64 + "\n-----END CERTIFICATE REQUEST-----";
-                File.WriteAllText(outputPemPath, pem);
+                    byte[] csrBytes = slice.Slice(0, bytesRead).ToArray();
+                    string base64 = Convert.ToBase64String(csrBytes, Base64FormattingOptions.InsertLineBreaks);
+                    string pem = "-----BEGIN CERTIFICATE REQUEST-----\n" + base64 + "\n-----END CERTIFICATE REQUEST-----";
+                    File.WriteAllText(outputPemPath, pem);
 
-                Console.WriteLine($"OK: PKCS#10 CSR extracted at offset {offset} and saved to {outputPemPath}");
-                return;
-            }
-            catch (CryptographicException)
-            {
-                // Not a valid PKCS#10 CSR at this offset — continue
-            }
-            catch (ArgumentOutOfRangeException)
-            {
-                break; // prevent slicing beyond array bounds
+                    Console.WriteLine($"✅ Found PKCS#10 CSR at offset {offset}. Saved to: {outputPemPath}");
+                    return;
+                }
+                catch (Exception)
+                {
+                    // Not a valid CSR here — keep scanning
+                }
             }
         }
 
