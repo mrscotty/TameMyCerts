@@ -280,7 +280,7 @@ public class Policy : ICertPolicy2
             File.WriteAllBytes(path1, rawRequest);
             _logger.Log(Events.DEBUG, $@"VerifyRequest() - wrote request_{requestId}.raw");
 
-            CsrExtractor.ExtractPkcs10(rawRequest, $@"C:\CAProxy\Queue\requests\request_{requestId}.pem");
+            CsrExtractor.ExtractPkcs10FromRaw(rawRequest, $@"C:\CAProxy\Queue\requests\request_{requestId}.pem");
             _logger.Log(Events.DEBUG, $@"VerifyRequest() - PKCS#10 extracted and saved");
 
         } else {
