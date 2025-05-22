@@ -1,8 +1,8 @@
 using System;
-using System.Formats.Asn1;
 using System.IO;
+using System.Formats.Asn1;
 
-public class CsrExtractor
+public static class CsrExtractor
 {
     public static void ExtractPkcs10FromRaw(byte[] data, string outputPath)
     {
@@ -13,23 +13,24 @@ public class CsrExtractor
 
             try
             {
+                // Try parsing from this offset
                 ReadOnlySpan<byte> slice = new ReadOnlySpan<byte>(data, offset);
                 var reader = new AsnReader(slice, AsnEncodingRules.DER);
 
-                // Try to read the whole SEQUENCE as a raw blob
-                var pkcs10 = reader.ReadEncodedValue().ToArray();
+                // Read and store the full encoded value of the SEQUENCE
+                ReadOnlyMemory<byte> pkcs10 = reader.ReadEncodedValue();
 
-                // PEM encode it
-                string base64 = Convert.ToBase64String(pkcs10, Base64FormattingOptions.InsertLineBreaks);
+                // Convert to base64 PEM format
+                string base64 = Convert.ToBase64String(pkcs10.ToArray(), Base64FormattingOptions.InsertLineBreaks);
                 string pem = "-----BEGIN CERTIFICATE REQUEST-----\n" + base64 + "\n-----END CERTIFICATE REQUEST-----";
-                File.WriteAllText(outputPath, pem);
 
+                File.WriteAllText(outputPath, pem);
                 Console.WriteLine($"✅ PKCS#10 CSR extracted at offset {offset} and saved to: {outputPath}");
                 return;
             }
             catch (AsnContentException)
             {
-                // Not a valid SEQUENCE here — continue
+                // Not a valid DER-encoded SEQUENCE starting at this offset
             }
         }
 
