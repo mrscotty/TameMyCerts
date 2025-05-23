@@ -19,7 +19,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using CERTCLILib;
-//using CERTADMINLib;
+using CERTADMINLib;
 using CERTPOLICYLib;
 using TameMyCerts.ClassExtensions;
 using TameMyCerts.Enums;
