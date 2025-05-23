@@ -19,6 +19,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using CERTCLILib;
+using CERTADMINLib;
 using CERTPOLICYLib;
 using TameMyCerts.ClassExtensions;
 using TameMyCerts.Enums;
@@ -248,7 +249,7 @@ public class Policy : ICertPolicy2
         if (File.Exists(certPath)) {
             _logger.Log(Events.DEBUG, $@"VerifyRequest() id={requestId} - found certificate file");
             byte[] certificateData = File.ReadAllBytes(certPath);
-            dbRow.SetProperty("RawCertificate", PropertyType.Binary, certificateData.Length, certificateData);
+            dbRow.SetProperty("RawCertificate", CertPropertyType.Binary, certificateData.Length, certificateData);
             dbRow.Commit();
             disposition = CertSrv.VR_INSTANT_OK;
         } else {
