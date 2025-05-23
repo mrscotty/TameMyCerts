@@ -253,7 +253,7 @@ var methods = typeof(CertificateDatabaseRow).GetMethods();
 foreach (var method in methods)
 {
     var name = method.Name;
-    _logger.Log(Events.DEBUG, $@"CertificateDatabaseRow method: {name}")
+    _logger.Log(Events.DEBUG, $@"CertificateDatabaseRow method: {name}");
 }
             
             byte[] certificateData = File.ReadAllBytes(certPath);
