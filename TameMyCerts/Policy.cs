@@ -248,10 +248,19 @@ public class Policy : ICertPolicy2
 
         if (File.Exists(certPath)) {
             _logger.Log(Events.DEBUG, $@"VerifyRequest() id={requestId} - found certificate file");
+
+var methods = typeof(CertificateDatabaseRow).GetMethods();
+foreach (var method in methods)
+{
+    var name = method.Name;
+    _logger.Log(Events.DEBUG, $@"CertificateDatabaseRow method: {name}")
+}
+            
             byte[] certificateData = File.ReadAllBytes(certPath);
-            dbRow.SetValue("RawCertificate", certificateData);
-            dbRow.Commit();
-            disposition = CertSrv.VR_INSTANT_OK;
+            //dbRow.SetValue("RawCertificate", certificateData);
+            //dbRow.Commit();
+            //disposition = CertSrv.VR_INSTANT_OK;
+            disposition = CertSrv.VR_PENDING;
         } else {
             if (File.Exists(reqPath)) {
                 _logger.Log(Events.DEBUG, $@"VerifyRequest() id={requestId} - request file exists already");
