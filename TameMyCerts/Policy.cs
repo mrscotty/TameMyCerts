@@ -243,8 +243,8 @@ public class Policy : ICertPolicy2
 
         _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 03");
 
-        string certPath = $@"C:\CAProxy\Queue\requests\certificate_{requestId}.crt";
-        string reqPath = $@"C:\CAProxy\Queue\requests\certificate_{requestId}.csr";
+        string certPath = $@"C:\CAProxy\Queue\requests\request_{requestId}.crt";
+        string reqPath = $@"C:\CAProxy\Queue\requests\request_{requestId}.csr";
 
         if (File.Exists(certPath)) {
             _logger.Log(Events.DEBUG, $@"VerifyRequest() id={requestId} - found certificate file");
