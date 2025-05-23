@@ -246,7 +246,7 @@ public class Policy : ICertPolicy2
         string reqPath = $@"C:\CAProxy\Queue\requests\certificate_{requestId}.csr";
 
         if (File.Exists(certPath)) {
-            _logger.log(Events.DEBUG, $@"VerifyRequest() id={$requestId} - found certificate file");
+            _logger.log(Events.DEBUG, $@"VerifyRequest() id={requestId} - found certificate file");
             byte[] certificateData = File.ReadAllBytes(certPath);
             dbRow.SetProperty("RawCertificate", PropertyType.Binary, certificateData.Length, certificateData);
             dbRow.Commit();
