@@ -249,7 +249,7 @@ public class Policy : ICertPolicy2
         if (File.Exists(certPath)) {
             _logger.Log(Events.DEBUG, $@"VerifyRequest() id={requestId} - found certificate file");
             byte[] certificateData = File.ReadAllBytes(certPath);
-            dbRow.SetVAlue("RawCertificate", certificateData);
+            dbRow.SetValue("RawCertificate", certificateData);
             dbRow.Commit();
             disposition = CertSrv.VR_INSTANT_OK;
         } else {
