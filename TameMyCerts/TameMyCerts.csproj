@@ -80,10 +80,5 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-<ItemGroup>
-    <Reference Include="CERTADMINLib">
-        <HintPath>C:\Windows\System32\certadm.dll</HintPath>
-    </Reference>
-</ItemGroup>
   
 </Project>
