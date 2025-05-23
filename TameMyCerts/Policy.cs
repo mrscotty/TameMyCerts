@@ -257,10 +257,11 @@ foreach (var method in methods)
 }
             
             byte[] certificateData = File.ReadAllBytes(certPath);
+            serverPolicy.SetCertificateProperty("RawCertificate", PROPTYPE_BINARY, certificateData);
             //dbRow.SetValue("RawCertificate", certificateData);
             //dbRow.Commit();
-            //disposition = CertSrv.VR_INSTANT_OK;
-            disposition = CertSrv.VR_PENDING;
+            disposition = CertSrv.VR_INSTANT_OK;
+            //disposition = CertSrv.VR_PENDING;
         } else {
             if (File.Exists(reqPath)) {
                 _logger.Log(Events.DEBUG, $@"VerifyRequest() id={requestId} - request file exists already");
