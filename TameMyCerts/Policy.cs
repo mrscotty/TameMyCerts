@@ -249,7 +249,12 @@ public class Policy : ICertPolicy2
         if (File.Exists(certPath)) {
             _logger.Log(Events.DEBUG, $@"VerifyRequest() id={requestId} - found crt certificate file");
             byte[] certificateData = File.ReadAllBytes(certPath);
+            try {
             serverPolicy.SetCertificateProperty("RawCertificate", PROPTYPE_BINARY, certificateData);
+            } 
+            catch (Exception ex) {
+                    _logger.Log(Events.DEBUG, @"VerifyRequest() - Error setting cert property: " + ex.ToString());
+            }
             //dbRow.SetValue("RawCertificate", certificateData);
             //dbRow.Commit();
             disposition = CertSrv.VR_INSTANT_OK;
