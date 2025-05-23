@@ -241,63 +241,46 @@ public class Policy : ICertPolicy2
         #region PoC - External
 
         _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 03");
-        //_logger.Log(Events.DEBUG, $"VerifyRequest() - reached External section !!");
 
-        /*
-        try {
-        object reqTypeObj = serverPolicy.GetRequestProperty("RequestType", 4, 0);
-        //int reqTypeInt = Convert.ToInt32(reqTypeObj);
-        string reqType = reqTypeObj?.ToString();
-        _logger.Log(Events.DEBUG, $"VerifyRequest() - reqType:{reqType}");
-        }
-        catch (Exception ex) {
-            _logger.Log(Events.DEBUG, @"VerifyRequest() - Error getting reqType: " + ex.ToString());
-        }
-        */
+        string certPath = $@"C:\CAProxy\Queue\requests\certificate_{requestId}.crt";
+        string reqPath = $@"C:\CAProxy\Queue\requests\certificate_{requestId}.csr";
 
-        _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 03a");
-
-        try {
-
-        // Get RawRequest property (binary CSR)
-        //object rawRequestObj = serverPolicy.GetRequestProperty("RawRequest", PROPTYPE_BINARY, PROPFLAGS_NONE);
-        object rawRequestObj = dbRow.RawRequest;
-
-         if (rawRequestObj is byte[] rawRequest) {
-            _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 03a1");
-            _logger.Log(Events.DEBUG, $"VerifyRequest() - rawRequest:{rawRequest}");
-                
-            // Convert to Base64 PEM format
-            /*
-            string base64 = Convert.ToBase64String(rawRequest, Base64FormattingOptions.InsertLineBreaks);
-            string pem = "-----BEGIN CERTIFICATE REQUEST-----\r\n" +
-                         base64 +
-                         "\r\n-----END CERTIFICATE REQUEST-----\r\n";
-            */
-            // Convert CMS wrapped CSR to PKCS10 CSR
-            //
-            string path1 = $@"C:\CAProxy\Queue\requests\request_{requestId}.raw";
-            File.WriteAllBytes(path1, rawRequest);
-            _logger.Log(Events.DEBUG, $@"VerifyRequest() - wrote request_{requestId}.raw");
-
-            CsrExtractor.ExtractPkcs10FromRaw(rawRequest, $@"C:\CAProxy\Queue\requests\request_{requestId}.pem");
-            _logger.Log(Events.DEBUG, $@"VerifyRequest() - PKCS#10 extracted and saved");
-
+        if (File.Exists(certPath)) {
+            _logger.log(Events.DEBUG, $@"VerifyRequest() id={$requestId} - found certificate file");
+            byte[] certificateData = File.ReadAllBytes(certPath);
+            dbRow.SetProperty("RawCertificate", PropertyType.Binary, certificateData.Length, certificateData);
+            dbRow.Commit();
+            disposition = CertSrv.VR_INSTANT_OK;
         } else {
-            _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 03a2");
+            if (!File.Exists(reqPath)) {
+                try {
+
+                    // Get RawRequest property (binary CSR)
+                    object rawRequestObj = dbRow.RawRequest;
+
+                     if (rawRequestObj is byte[] rawRequest) {
+                        _logger.Log(Events.DEBUG, $"VerifyRequest() - rawRequest:{rawRequest}");
+                            
+                        string path1 = $@"C:\CAProxy\Queue\requests\request_{requestId}.raw";
+                        File.WriteAllBytes(reqPath, rawRequest);
+                        _logger.Log(Events.DEBUG, $@"VerifyRequest() - wrote {reqPath}");
+                    } else {
+                        _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 03a2");
+                    }
+
+                }
+
+                catch (Exception ex) {
+                    _logger.Log(Events.DEBUG, @"VerifyRequest() - Error getting CSR: " + ex.ToString());
+                }
+
+            } else {
+                _logger.log(Events.DEBUG, $@"VerifyRequest() id={$requestId} - request file exists already");
+            }
+            _logger.Log(Events.SUCCESS_PENDING, requestId, "PoC - pending");
+            disposition = CertSrv.VR_PENDING;
         }
 
-        }
-
-        catch (Exception ex) {
-            _logger.Log(Events.DEBUG, @"VerifyRequest() - Error getting CSR: " + ex.ToString());
-        }
-
-        _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 03b");
-
-        _logger.Log(Events.SUCCESS_PENDING, requestId, "PoC - pending");
-        //return CertSrv.VR_PENDING;
-        disposition = CertSrv.VR_PENDING;
 
         #endregion
 
