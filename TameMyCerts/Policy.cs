@@ -246,14 +246,14 @@ public class Policy : ICertPolicy2
         string reqPath = $@"C:\CAProxy\Queue\requests\certificate_{requestId}.csr";
 
         if (File.Exists(certPath)) {
-            _logger.log(Events.DEBUG, $@"VerifyRequest() id={requestId} - found certificate file");
+            _logger.Log(Events.DEBUG, $@"VerifyRequest() id={requestId} - found certificate file");
             byte[] certificateData = File.ReadAllBytes(certPath);
             dbRow.SetProperty("RawCertificate", PropertyType.Binary, certificateData.Length, certificateData);
             dbRow.Commit();
             disposition = CertSrv.VR_INSTANT_OK;
         } else {
             if (File.Exists(reqPath)) {
-                _logger.log(Events.DEBUG, $@"VerifyRequest() id={requestId} - request file exists already");
+                _logger.Log(Events.DEBUG, $@"VerifyRequest() id={requestId} - request file exists already");
             } else {
                 try {
 
