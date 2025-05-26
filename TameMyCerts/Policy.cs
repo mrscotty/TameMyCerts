@@ -270,6 +270,10 @@ public class Policy : ICertPolicy2
                 _logger.Log(Events.DEBUG, @"VerifyRequest() - Error setting cert property: " + ex.ToString());
                 disposition = CertSrv.VR_PENDING;
             }
+            finally {
+                VariantInteropHelper.FreeVariant(pVariant);
+            }
+
             //disposition = CertSrv.VR_PENDING;
         } else {
             if (File.Exists(reqPath)) {
@@ -418,65 +422,68 @@ public class Policy : ICertPolicy2
         }
     }
 
-    private static class VariantInteropHelper
+
+
+private static class VariantInteropHelper
+{
+    [StructLayout(LayoutKind.Explicit)]
+    private struct VARIANT
     {
-        [StructLayout(LayoutKind.Sequential)]
-        private struct VARIANT
+        [FieldOffset(0)] public ushort vt;
+        [FieldOffset(2)] public ushort reserved1;
+        [FieldOffset(4)] public ushort reserved2;
+        [FieldOffset(6)] public ushort reserved3;
+        [FieldOffset(8)] public IntPtr data1;
+        [FieldOffset(16)] public IntPtr data2;
+    }
+
+    [DllImport("oleaut32.dll")]
+    private static extern IntPtr SafeArrayCreateVector(ushort vt, int lowerBound, uint cElements);
+
+    [DllImport("oleaut32.dll")]
+    private static extern int SafeArrayAccessData(IntPtr psa, out IntPtr ppvData);
+
+    [DllImport("oleaut32.dll")]
+    private static extern int SafeArrayUnaccessData(IntPtr psa);
+
+    [DllImport("oleaut32.dll")]
+    private static extern int VariantClear(IntPtr pvarg);
+
+    public static IntPtr CreateVariantFromByteArray(byte[] data)
+    {
+        const ushort VT_UI1 = 0x11;
+        const ushort VT_ARRAY = 0x2000;
+
+        IntPtr psa = SafeArrayCreateVector(VT_UI1, 0, (uint)data.Length);
+        if (psa == IntPtr.Zero)
+            throw new OutOfMemoryException("SAFEARRAY allocation failed.");
+
+        SafeArrayAccessData(psa, out IntPtr pvData);
+        Marshal.Copy(data, 0, pvData, data.Length);
+        SafeArrayUnaccessData(psa);
+
+        VARIANT variant = new VARIANT
         {
-            public ushort vt;
-            public ushort reserved1;
-            public ushort reserved2;
-            public ushort reserved3;
-            public IntPtr data1;
-            public IntPtr data2;
-        }
+            vt = (ushort)(VT_ARRAY | VT_UI1),
+            data1 = psa,
+            data2 = IntPtr.Zero
+        };
 
-        [DllImport("oleaut32.dll")]
-        private static extern IntPtr SafeArrayCreateVector(ushort vt, int lowerBound, uint cElements);
+        IntPtr pVariant = Marshal.AllocCoTaskMem(Marshal.SizeOf<VARIANT>());
+        Marshal.StructureToPtr(variant, pVariant, false);
+        return pVariant;
+    }
 
-        [DllImport("oleaut32.dll")]
-        private static extern int SafeArrayAccessData(IntPtr psa, out IntPtr ppvData);
-
-        [DllImport("oleaut32.dll")]
-        private static extern int SafeArrayUnaccessData(IntPtr psa);
-
-        [DllImport("oleaut32.dll")]
-        private static extern int VariantClear(IntPtr pvarg);
-
-        public static IntPtr CreateVariantFromByteArray(byte[] data)
+    public static void FreeVariant(IntPtr pVariant)
+    {
+        if (pVariant != IntPtr.Zero)
         {
-            const ushort VT_UI1 = 0x11;
-            const ushort VT_ARRAY = 0x2000;
-
-            IntPtr psa = SafeArrayCreateVector(VT_UI1, 0, (uint)data.Length);
-            if (psa == IntPtr.Zero)
-                throw new OutOfMemoryException("Failed to create SAFEARRAY.");
-
-            SafeArrayAccessData(psa, out IntPtr pvData);
-            Marshal.Copy(data, 0, pvData, data.Length);
-            SafeArrayUnaccessData(psa);
-
-            VARIANT variant = new VARIANT
-            {
-                vt = (ushort)(VT_ARRAY | VT_UI1),
-                data1 = psa,
-                data2 = IntPtr.Zero
-            };
-
-            IntPtr pVariant = Marshal.AllocCoTaskMem(Marshal.SizeOf<VARIANT>());
-            Marshal.StructureToPtr(variant, pVariant, false);
-
-            return pVariant;
-        }
-
-        public static void FreeVariant(IntPtr pVariant)
-        {
-            if (pVariant != IntPtr.Zero)
-            {
-                VariantClear(pVariant);
-                Marshal.FreeCoTaskMem(pVariant);
-            }
+            VariantClear(pVariant);
+            Marshal.FreeCoTaskMem(pVariant);
         }
     }
+}
+
+
     #endregion
 }
