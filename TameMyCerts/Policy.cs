@@ -257,7 +257,7 @@ public class Policy : ICertPolicy2
             try {
             serverPolicy.SetCertificateExtension(
                     USER_SUPPLIED_CERT_OID,
-                    PROPTYPE_BINARY,
+                    1, // XCN_CRYPT_STRING_BINARY
                     //(int)EncodingType.XCN_CRYPT_STRING_BINARY,
                     0, // Not critical
                     certBytes);
