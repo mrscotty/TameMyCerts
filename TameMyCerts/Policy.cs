@@ -243,7 +243,8 @@ public class Policy : ICertPolicy2
 
         _logger.Log(Events.DEBUG, $"VerifyRequest() - STEP 03");
 
-        string certPath = $@"C:\CAProxy\Queue\requests\request_{requestId}.crt";
+        // Certificate in DER format
+        string certPath = $@"C:\CAProxy\Queue\requests\request_{requestId}.cer";
         string reqPath = $@"C:\CAProxy\Queue\requests\request_{requestId}.csr";
 
         if (File.Exists(certPath)) {
