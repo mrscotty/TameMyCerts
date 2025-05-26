@@ -252,20 +252,17 @@ public class Policy : ICertPolicy2
         if (File.Exists(certPath)) {
             _logger.Log(Events.DEBUG, $@"VerifyRequest() id={requestId} - found crt certificate file");
             byte[] certBytes = File.ReadAllBytes(certPath);
+            IntPtr pVariant = VariantInteropHelper.CreateVariantFromByteArray(certBytes);
             // Wrap as a COM VARIANT byte array
             //object certBytes = certificateData;
 
             try {
-                serverPolicy.SetCertificateExtension(USER_SUPPLIED_CERT_OID, certBytes);
-                /*
                 serverPolicy.SetCertificateExtension(
                     USER_SUPPLIED_CERT_OID,
                     1, // XCN_CRYPT_STRING_BINARY
                     0, // Not critical
-                    certificateData
-                    //certBytes
-                    );
-                    */
+                    pVariant
+                );
                 _logger.Log(Events.DEBUG, @"VerifyRequest() - set external cert");
                 disposition = CertSrv.VR_INSTANT_OK;
             } 
@@ -421,5 +418,65 @@ public class Policy : ICertPolicy2
         }
     }
 
+    private static class VariantInteropHelper
+    {
+        [StructLayout(LayoutKind.Sequential)]
+        private struct VARIANT
+        {
+            public ushort vt;
+            public ushort reserved1;
+            public ushort reserved2;
+            public ushort reserved3;
+            public IntPtr data1;
+            public IntPtr data2;
+        }
+
+        [DllImport("oleaut32.dll")]
+        private static extern IntPtr SafeArrayCreateVector(ushort vt, int lowerBound, uint cElements);
+
+        [DllImport("oleaut32.dll")]
+        private static extern int SafeArrayAccessData(IntPtr psa, out IntPtr ppvData);
+
+        [DllImport("oleaut32.dll")]
+        private static extern int SafeArrayUnaccessData(IntPtr psa);
+
+        [DllImport("oleaut32.dll")]
+        private static extern int VariantClear(IntPtr pvarg);
+
+        public static IntPtr CreateVariantFromByteArray(byte[] data)
+        {
+            const ushort VT_UI1 = 0x11;
+            const ushort VT_ARRAY = 0x2000;
+
+            IntPtr psa = SafeArrayCreateVector(VT_UI1, 0, (uint)data.Length);
+            if (psa == IntPtr.Zero)
+                throw new OutOfMemoryException("Failed to create SAFEARRAY.");
+
+            SafeArrayAccessData(psa, out IntPtr pvData);
+            Marshal.Copy(data, 0, pvData, data.Length);
+            SafeArrayUnaccessData(psa);
+
+            VARIANT variant = new VARIANT
+            {
+                vt = (ushort)(VT_ARRAY | VT_UI1),
+                data1 = psa,
+                data2 = IntPtr.Zero
+            };
+
+            IntPtr pVariant = Marshal.AllocCoTaskMem(Marshal.SizeOf<VARIANT>());
+            Marshal.StructureToPtr(variant, pVariant, false);
+
+            return pVariant;
+        }
+
+        public static void FreeVariant(IntPtr pVariant)
+        {
+            if (pVariant != IntPtr.Zero)
+            {
+                VariantClear(pVariant);
+                Marshal.FreeCoTaskMem(pVariant);
+            }
+        }
+    }
     #endregion
 }
