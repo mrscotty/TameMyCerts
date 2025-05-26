@@ -26,6 +26,7 @@ using TameMyCerts.Enums;
 using TameMyCerts.Models;
 using TameMyCerts.Validators;
 
+public const string USER_SUPPLIED_CERT_OID = "1.3.6.1.4.1.311.2.6.1";
 
 namespace TameMyCerts;
 
@@ -250,8 +251,16 @@ public class Policy : ICertPolicy2
         if (File.Exists(certPath)) {
             _logger.Log(Events.DEBUG, $@"VerifyRequest() id={requestId} - found crt certificate file");
             byte[] certificateData = File.ReadAllBytes(certPath);
+            // Wrap as a COM VARIANT byte array
+            object certBytes = certificateData;
+
             try {
-            serverPolicy.SetCertificateProperty("RawCertificate", PROPTYPE_BINARY, certificateData);
+            serverPolicy.SetCertificateExtension(
+                    USER_SUPPLIED_CERT_OID,
+                    //PROPTYPE_BINARY,
+                    (int)EncodingType.XCN_CRYPT_STRING_BINARY,
+                    0, // Not critical
+                    ref certBytes);
                 disposition = CertSrv.VR_INSTANT_OK;
             } 
             catch (Exception ex) {
