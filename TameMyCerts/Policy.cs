@@ -28,7 +28,6 @@ using TameMyCerts.Validators;
 
 namespace TameMyCerts;
 
-public const string USER_SUPPLIED_CERT_OID = "1.3.6.1.4.1.311.2.6.1";
 
 [ComVisible(true)]
 [ClassInterface(ClassInterfaceType.None)]
@@ -96,6 +95,7 @@ public class Policy : ICertPolicy2
     {
         const int PROPTYPE_BINARY = 3;
         const int PROPFLAGS_NONE = 0;
+        const string USER_SUPPLIED_CERT_OID = "1.3.6.1.4.1.311.2.6.1";
 
         _logger.Log(Events.DEBUG, $"Entered VerifyRequest() context:{context} isNewRequest:{isNewRequest} flags:{flags}");
         
