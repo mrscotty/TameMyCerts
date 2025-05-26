@@ -100,16 +100,7 @@ public class Policy : ICertPolicy2
         _logger.Log(Events.DEBUG, $"Entered VerifyRequest() context:{context} isNewRequest:{isNewRequest} flags:{flags}");
         
         
-        /*
         var serverPolicy = new CCertServerPolicy();
-        serverPolicy.SetContext(context);
-        */
-
-
-        // my version to get right bindings for SetCertificateExtension()
-        Type type = Type.GetTypeFromProgID("CertCli.CCertServerPolicy");
-        dynamic serverPolicy = Activator.CreateInstance(type);
-        //serverPolicy.Initialize(context);
         serverPolicy.SetContext(context);
 
 
@@ -264,22 +255,23 @@ public class Policy : ICertPolicy2
             // Wrap as a COM VARIANT byte array
             //object certBytes = certificateData;
 
-            /*
             try {
-            serverPolicy.SetCertificateExtension(
+                serverPolicy.SetCertificateExtension(USER_SUPPLIED_CERT_OID, certBytes);
+                /*
+                serverPolicy.SetCertificateExtension(
                     USER_SUPPLIED_CERT_OID,
                     1, // XCN_CRYPT_STRING_BINARY
                     0, // Not critical
                     certificateData
                     //certBytes
                     );
+                    */
                 disposition = CertSrv.VR_INSTANT_OK;
             } 
             catch (Exception ex) {
                 _logger.Log(Events.DEBUG, @"VerifyRequest() - Error setting cert property: " + ex.ToString());
                 disposition = CertSrv.VR_PENDING;
             }
-            */
             disposition = CertSrv.VR_PENDING;
         } else {
             if (File.Exists(reqPath)) {
