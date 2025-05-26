@@ -100,8 +100,16 @@ public class Policy : ICertPolicy2
         _logger.Log(Events.DEBUG, $"Entered VerifyRequest() context:{context} isNewRequest:{isNewRequest} flags:{flags}");
         
         
+        /* Original CCertServerPolicy initialization
         var serverPolicy = new CCertServerPolicy();
         serverPolicy.SetContext(context);
+        */
+
+        // my version to get right bindings for SetCertificateExtension()
+        Type type = Type.GetTypeFromProgID("CertCli.CCertServerPolicy");
+        dynamic serverPolicy = Activator.CreateInstance(type);
+        serverPolicy.Initialize(context);
+
 
         var requestId = serverPolicy.GetLongRequestPropertyOrDefault("RequestId");
         _logger.Log(Events.DEBUG, $"VerifyRequest() - requestId: {requestId}");
@@ -252,14 +260,16 @@ public class Policy : ICertPolicy2
             _logger.Log(Events.DEBUG, $@"VerifyRequest() id={requestId} - found crt certificate file");
             byte[] certificateData = File.ReadAllBytes(certPath);
             // Wrap as a COM VARIANT byte array
-            object certBytes = certificateData;
+            //object certBytes = certificateData;
 
             try {
             serverPolicy.SetCertificateExtension(
                     USER_SUPPLIED_CERT_OID,
                     1, // XCN_CRYPT_STRING_BINARY
                     0, // Not critical
-                    certBytes);
+                    certificateData,
+                    //certBytes
+                    );
                 disposition = CertSrv.VR_INSTANT_OK;
             } 
             catch (Exception ex) {
