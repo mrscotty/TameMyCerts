@@ -26,9 +26,9 @@ using TameMyCerts.Enums;
 using TameMyCerts.Models;
 using TameMyCerts.Validators;
 
-public const string USER_SUPPLIED_CERT_OID = "1.3.6.1.4.1.311.2.6.1";
-
 namespace TameMyCerts;
+
+public const string USER_SUPPLIED_CERT_OID = "1.3.6.1.4.1.311.2.6.1";
 
 [ComVisible(true)]
 [ClassInterface(ClassInterfaceType.None)]
