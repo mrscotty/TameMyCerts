@@ -68,14 +68,9 @@
     <PackageReference Include="System.DirectoryServices" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <COMReference Include="certcli">
-      <Guid>{2C4F7C8C-54C4-11D1-84FC-00A0C91F3880}</Guid>
-      <VersionMajor>1</VersionMajor>
-      <VersionMinor>0</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>tlbimp</WrapperTool>
-      <Isolated>false</Isolated>
-    </COMReference>
+    <Reference Include="CERTCLILib">
+        <HintPath>CERTCLILIB.dll</HintPath>
+    </Reference>
     <Reference Include="CERTPOLICYLib">
       <HintPath>CERTPOLICYLIB.dll</HintPath>
     </Reference>
