@@ -251,7 +251,7 @@ public class Policy : ICertPolicy2
 
         if (File.Exists(certPath)) {
             _logger.Log(Events.DEBUG, $@"VerifyRequest() id={requestId} - found crt certificate file");
-            byte[] certificateData = File.ReadAllBytes(certPath);
+            byte[] certBytes = File.ReadAllBytes(certPath);
             // Wrap as a COM VARIANT byte array
             //object certBytes = certificateData;
 
