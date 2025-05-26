@@ -252,7 +252,14 @@ public class Policy : ICertPolicy2
         if (File.Exists(certPath)) {
             _logger.Log(Events.DEBUG, $@"VerifyRequest() id={requestId} - found crt certificate file");
             byte[] certBytes = File.ReadAllBytes(certPath);
-            IntPtr pVariant = VariantInteropHelper.CreateVariantFromByteArray(certBytes);
+
+            // Only allocate SAFEARRAY, don't wrap it in a VARIANT
+            IntPtr psa = SafeArrayCreateVector(0x11 /* VT_UI1 */, 0, (uint)data.Length);
+            SafeArrayAccessData(psa, out IntPtr pvData);
+            Marshal.Copy(certBytes, 0, pvData, certBytes.Length);
+            SafeArrayUnaccessData(psa);
+
+            //IntPtr pVariant = VariantInteropHelper.CreateVariantFromByteArray(certBytes);
             // Wrap as a COM VARIANT byte array
             //object certBytes = certificateData;
 
@@ -261,7 +268,7 @@ public class Policy : ICertPolicy2
                     USER_SUPPLIED_CERT_OID,
                     1, // XCN_CRYPT_STRING_BINARY
                     0, // Not critical
-                    pVariant
+                    psa
                 );
                 _logger.Log(Events.DEBUG, @"VerifyRequest() - set external cert");
                 disposition = CertSrv.VR_INSTANT_OK;
