@@ -254,14 +254,7 @@ public class Policy : ICertPolicy2
             byte[] certBytes = File.ReadAllBytes(certPath);
 
             // Only allocate SAFEARRAY, don't wrap it in a VARIANT
-            IntPtr psa = SafeArrayCreateVector(0x11 /* VT_UI1 */, 0, (uint)data.Length);
-            SafeArrayAccessData(psa, out IntPtr pvData);
-            Marshal.Copy(certBytes, 0, pvData, certBytes.Length);
-            SafeArrayUnaccessData(psa);
-
-            //IntPtr pVariant = VariantInteropHelper.CreateVariantFromByteArray(certBytes);
-            // Wrap as a COM VARIANT byte array
-            //object certBytes = certificateData;
+            IntPtr psa = SafeArrayHelper.CreateSafeArrayFromByteArray(certBytes);
 
             try {
                 serverPolicy.SetCertificateExtension(
@@ -278,7 +271,7 @@ public class Policy : ICertPolicy2
                 disposition = CertSrv.VR_PENDING;
             }
             finally {
-                VariantInteropHelper.FreeVariant(pVariant);
+                SafeArrayHelper.FreeSafeArray(psa);
             }
 
             //disposition = CertSrv.VR_PENDING;
@@ -490,6 +483,58 @@ private static class VariantInteropHelper
         }
     }
 }
+
+
+
+private static class SafeArrayHelper
+{
+    private const ushort VT_UI1 = 0x11;
+
+    [DllImport("oleaut32.dll")]
+    private static extern IntPtr SafeArrayCreateVector(ushort vt, int lowerBound, uint cElements);
+
+    [DllImport("oleaut32.dll")]
+    private static extern int SafeArrayAccessData(IntPtr psa, out IntPtr ppvData);
+
+    [DllImport("oleaut32.dll")]
+    private static extern int SafeArrayUnaccessData(IntPtr psa);
+
+    [DllImport("oleaut32.dll")]
+    private static extern int SafeArrayDestroy(IntPtr psa);
+
+    /// <summary>
+    /// Creates a SAFEARRAY of VT_UI1 from a byte array.
+    /// Returns an IntPtr to the SAFEARRAY structure.
+    /// </summary>
+    public static IntPtr CreateSafeArrayFromByteArray(byte[] data)
+    {
+        IntPtr psa = SafeArrayCreateVector(VT_UI1, 0, (uint)data.Length);
+        if (psa == IntPtr.Zero)
+            throw new OutOfMemoryException("Failed to allocate SAFEARRAY.");
+
+        int hr = SafeArrayAccessData(psa, out IntPtr pvData);
+        if (hr != 0)
+            throw new InvalidOperationException($"SafeArrayAccessData failed with HRESULT 0x{hr:X}");
+
+        Marshal.Copy(data, 0, pvData, data.Length);
+
+        hr = SafeArrayUnaccessData(psa);
+        if (hr != 0)
+            throw new InvalidOperationException($"SafeArrayUnaccessData failed with HRESULT 0x{hr:X}");
+
+        return psa;
+    }
+
+    /// <summary>
+    /// Frees a SAFEARRAY allocated by CreateSafeArrayFromByteArray.
+    /// </summary>
+    public static void FreeSafeArray(IntPtr psa)
+    {
+        if (psa != IntPtr.Zero)
+            SafeArrayDestroy(psa);
+    }
+}
+
 
 
     #endregion
