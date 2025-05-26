@@ -260,7 +260,7 @@ public class Policy : ICertPolicy2
                     PROPTYPE_BINARY,
                     //(int)EncodingType.XCN_CRYPT_STRING_BINARY,
                     0, // Not critical
-                    ref certBytes);
+                    certBytes);
                 disposition = CertSrv.VR_INSTANT_OK;
             } 
             catch (Exception ex) {
