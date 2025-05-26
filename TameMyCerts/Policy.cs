@@ -267,7 +267,7 @@ public class Policy : ICertPolicy2
                     USER_SUPPLIED_CERT_OID,
                     1, // XCN_CRYPT_STRING_BINARY
                     0, // Not critical
-                    certificateData,
+                    certificateData
                     //certBytes
                     );
                 disposition = CertSrv.VR_INSTANT_OK;
