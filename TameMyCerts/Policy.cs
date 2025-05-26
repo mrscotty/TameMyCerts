@@ -258,7 +258,6 @@ public class Policy : ICertPolicy2
             serverPolicy.SetCertificateExtension(
                     USER_SUPPLIED_CERT_OID,
                     1, // XCN_CRYPT_STRING_BINARY
-                    //(int)EncodingType.XCN_CRYPT_STRING_BINARY,
                     0, // Not critical
                     certBytes);
                 disposition = CertSrv.VR_INSTANT_OK;
