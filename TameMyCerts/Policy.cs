@@ -266,6 +266,7 @@ public class Policy : ICertPolicy2
                     //certBytes
                     );
                     */
+                _logger.Log(Events.DEBUG, @"VerifyRequest() - set external cert");
                 disposition = CertSrv.VR_INSTANT_OK;
             } 
             catch (Exception ex) {
