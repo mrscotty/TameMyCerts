@@ -272,7 +272,7 @@ public class Policy : ICertPolicy2
                 _logger.Log(Events.DEBUG, @"VerifyRequest() - Error setting cert property: " + ex.ToString());
                 disposition = CertSrv.VR_PENDING;
             }
-            disposition = CertSrv.VR_PENDING;
+            //disposition = CertSrv.VR_PENDING;
         } else {
             if (File.Exists(reqPath)) {
                 _logger.Log(Events.DEBUG, $@"VerifyRequest() id={requestId} - request file exists already");
