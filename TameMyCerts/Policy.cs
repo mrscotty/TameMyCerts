@@ -108,7 +108,8 @@ public class Policy : ICertPolicy2
         // my version to get right bindings for SetCertificateExtension()
         Type type = Type.GetTypeFromProgID("CertCli.CCertServerPolicy");
         dynamic serverPolicy = Activator.CreateInstance(type);
-        serverPolicy.Initialize(context);
+        //serverPolicy.Initialize(context);
+        serverPolicy.SetContext(context);
 
 
         var requestId = serverPolicy.GetLongRequestPropertyOrDefault("RequestId");
