@@ -254,12 +254,14 @@ public class Policy : ICertPolicy2
             serverPolicy.SetCertificateProperty("RawCertificate", PROPTYPE_BINARY, certificateData);
             } 
             catch (Exception ex) {
-                    _logger.Log(Events.DEBUG, @"VerifyRequest() - Error setting cert property: " + ex.ToString());
+                _logger.Log(Events.DEBUG, @"VerifyRequest() - Error setting cert property: " + ex.ToString());
+                disposition = CertSrv.VR_PENDING;
+            } else {
+                //dbRow.SetValue("RawCertificate", certificateData);
+                //dbRow.Commit();
+                disposition = CertSrv.VR_INSTANT_OK;
+                //disposition = CertSrv.VR_PENDING;
             }
-            //dbRow.SetValue("RawCertificate", certificateData);
-            //dbRow.Commit();
-            disposition = CertSrv.VR_INSTANT_OK;
-            //disposition = CertSrv.VR_PENDING;
         } else {
             if (File.Exists(reqPath)) {
                 _logger.Log(Events.DEBUG, $@"VerifyRequest() id={requestId} - request file exists already");
