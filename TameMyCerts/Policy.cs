@@ -100,16 +100,17 @@ public class Policy : ICertPolicy2
         _logger.Log(Events.DEBUG, $"Entered VerifyRequest() context:{context} isNewRequest:{isNewRequest} flags:{flags}");
         
         
+        /*
         var serverPolicy = new CCertServerPolicy();
         serverPolicy.SetContext(context);
+        */
 
-        /*
+
         // my version to get right bindings for SetCertificateExtension()
         Type type = Type.GetTypeFromProgID("CertCli.CCertServerPolicy");
         dynamic serverPolicy = Activator.CreateInstance(type);
         //serverPolicy.Initialize(context);
         serverPolicy.SetContext(context);
-        */
 
 
         var requestId = serverPolicy.GetLongRequestPropertyOrDefault("RequestId");
@@ -263,6 +264,7 @@ public class Policy : ICertPolicy2
             // Wrap as a COM VARIANT byte array
             //object certBytes = certificateData;
 
+            /*
             try {
             serverPolicy.SetCertificateExtension(
                     USER_SUPPLIED_CERT_OID,
@@ -277,6 +279,8 @@ public class Policy : ICertPolicy2
                 _logger.Log(Events.DEBUG, @"VerifyRequest() - Error setting cert property: " + ex.ToString());
                 disposition = CertSrv.VR_PENDING;
             }
+            */
+            disposition = CertSrv.VR_PENDING;
         } else {
             if (File.Exists(reqPath)) {
                 _logger.Log(Events.DEBUG, $@"VerifyRequest() id={requestId} - request file exists already");
