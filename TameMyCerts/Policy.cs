@@ -100,16 +100,16 @@ public class Policy : ICertPolicy2
         _logger.Log(Events.DEBUG, $"Entered VerifyRequest() context:{context} isNewRequest:{isNewRequest} flags:{flags}");
         
         
-        /* Original CCertServerPolicy initialization
         var serverPolicy = new CCertServerPolicy();
         serverPolicy.SetContext(context);
-        */
 
+        /*
         // my version to get right bindings for SetCertificateExtension()
         Type type = Type.GetTypeFromProgID("CertCli.CCertServerPolicy");
         dynamic serverPolicy = Activator.CreateInstance(type);
         //serverPolicy.Initialize(context);
         serverPolicy.SetContext(context);
+        */
 
 
         var requestId = serverPolicy.GetLongRequestPropertyOrDefault("RequestId");
